@@ -35,7 +35,7 @@ class ThinkingSphinx::RakeInterface
   def generate
     indices = configuration.indices.select { |index| index.type == 'rt' }
     indices.each do |index|
-      ThinkingSphinx::RealTime::Populator.populate index
+      ThinkingSphinx::RealTime::Populator.populate index, options[:limit]
     end
   end
 

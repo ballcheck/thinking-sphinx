@@ -1,10 +1,11 @@
 class ThinkingSphinx::RealTime::Populator
-  def self.populate(index)
-    new(index).populate
+  def self.populate(*args)
+    new(*args).populate
   end
 
-  def initialize(index)
+  def initialize(index, limit = nil)
     @index = index
+    @limit = limit || Float::INFINITY
   end
 
   def populate(&block)
@@ -12,7 +13,11 @@ class ThinkingSphinx::RealTime::Populator
 
     remove_files
 
+    cnt = 0
     scope.find_in_batches(:batch_size => batch_size) do |instances|
+      raise if cnt >= limit
+      cnt += instances.size
+      instances = instances[0..((limit-cnt)-1)] if cnt > limit
       transcriber.copy *instances
       instrument 'populated', :instances => instances
     end
@@ -23,7 +28,7 @@ class ThinkingSphinx::RealTime::Populator
 
   private
 
-  attr_reader :index
+  attr_reader :index, :limit
 
   delegate :controller, :batch_size, :to => :configuration
   delegate :scope,                   :to => :index
